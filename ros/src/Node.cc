@@ -321,26 +321,51 @@ void Node::LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters) {
   }
 
   if (load_calibration_from_cam) {
-    ROS_INFO_STREAM ("Listening for camera info on topic " << node_handle_.resolveName(camera_info_topic_));
-    sensor_msgs::CameraInfo::ConstPtr camera_info = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(camera_info_topic_, ros::Duration(1000.0));
-    if(camera_info == nullptr){
-        ROS_WARN("Did not receive camera info before timeout, defaulting to launch file params.");
-    } else {
-      parameters.fx = camera_info->K[0];
-      parameters.fy = camera_info->K[4];
-      parameters.cx = camera_info->K[2];
-      parameters.cy = camera_info->K[5];
+    ROS_INFO_STREAM ("Listening for camera info on topic asdasd " << node_handle_.resolveName(camera_info_topic_));
+    do {
+      try {
+        sensor_msgs::CameraInfo::ConstPtr camera_info = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(camera_info_topic_, ros::Duration(1000.0));
+        if(camera_info == nullptr){
+            ROS_WARN("Did not receive camera info before timeout, defaulting to launch file params.");
+        } else {
+          if(camera_info->K.size()==0)
+            break;
+          parameters.fx = camera_info->K[0];
+          parameters.fy = camera_info->K[4];
+          parameters.cx = camera_info->K[2];
+          parameters.cy = camera_info->K[5];
 
-      parameters.baseline = camera_info->P[3];
-
-      parameters.k1 = camera_info->D[0];
-      parameters.k2 = camera_info->D[1];
-      parameters.p1 = camera_info->D[2];
-      parameters.p2 = camera_info->D[3];
-      parameters.k3 = camera_info->D[4];
-      return;
+          parameters.baseline = camera_info->P[3];
+          if(camera_info->D.size()==0)
+          {
+            parameters.k1 = 0.0;
+            parameters.k2 = 0.0;
+            parameters.p1 = 0.0;
+            parameters.p2 = 0.0;
+            parameters.k3 = 0.0;            
+          } 
+          else
+          { 
+            parameters.k1 = camera_info->D[0];
+            parameters.k2 = camera_info->D[1];
+            parameters.p1 = camera_info->D[2];
+            parameters.p2 = camera_info->D[3];
+            parameters.k3 = camera_info->D[4];
+          }
+           
+          return;
+        }
+      }
+      catch(std::exception& e)
+      {
+        continue;
+      }
     }
+    while(1);
   }
+
+  ROS_INFO_STREAM ("GOT HERE2");
+
 
   bool got_cam_calibration = true;
   if (sensor_== ORB_SLAM2::System::STEREO || sensor_==ORB_SLAM2::System::RGBD) {
