@@ -364,8 +364,6 @@ void Node::LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters) {
     while(1);
   }
 
-  ROS_INFO_STREAM ("GOT HERE2");
-
 
   bool got_cam_calibration = true;
   if (sensor_== ORB_SLAM2::System::STEREO || sensor_==ORB_SLAM2::System::RGBD) {
